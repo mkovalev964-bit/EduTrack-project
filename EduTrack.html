@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>EduTrack | Простое сохранение</title>
+    <title>EduTrack | Умный журнал</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
@@ -90,8 +90,6 @@
         .student-lessons-table { width: 100%; border-collapse: collapse; margin-top: 0.8rem; font-size: 0.85rem; }
         .file-link { color: #1a3b5c; text-decoration: none; font-weight: 500; background: #e7f0fa; padding: 0.2rem 0.6rem; border-radius: 30px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #b9d2ec; }
         .topic-badge { background: #e0effc; color: #0e3d60; padding: 0.2rem 0.8rem; border-radius: 40px; font-size: 0.8rem; font-weight: 500; display: inline-block; }
-        
-        /* Кнопка сохранения справа снизу */
         .save-data-fab {
             position: fixed;
             bottom: 28px;
@@ -111,21 +109,10 @@
             border: none;
             font-size: 24px;
         }
-        .save-data-fab:hover {
-            background: #0f2a44;
-            transform: scale(1.05);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.4);
-        }
-        .save-data-fab i {
-            font-size: 26px;
-        }
+        .save-data-fab:hover { background: #0f2a44; transform: scale(1.05); }
+        .save-data-fab i { font-size: 26px; }
         @media (max-width: 640px) {
-            .save-data-fab {
-                bottom: 20px;
-                right: 20px;
-                width: 48px;
-                height: 48px;
-            }
+            .save-data-fab { bottom: 20px; right: 20px; width: 48px; height: 48px; }
             .save-data-fab i { font-size: 22px; }
         }
         .toast-msg {
@@ -139,7 +126,6 @@
             font-size: 0.85rem;
             font-weight: 600;
             z-index: 1100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             animation: fadeOut 2s ease forwards;
         }
         @keyframes fadeOut {
@@ -147,15 +133,16 @@
             70% { opacity: 1; }
             100% { opacity: 0; transform: translateY(-10px); visibility: hidden; }
         }
+        .error-fallback { text-align: center; padding: 40px; color: #1a3b5c; }
     </style>
 </head>
 <body>
 <div id="loginScreen" class="login-container">
-    <div class="login-box"><h1>EduTrack</h1><h2>Вход в систему</h2>
-    <div class="login-tabs"><div id="loginTabTeacher" class="login-tab active">Преподаватель</div><div id="loginTabStudent" class="login-tab">Студент</div></div>
+    <div class="login-box"><h1>📚 EduTrack</h1><h2>Вход в систему</h2>
+    <div class="login-tabs"><div id="loginTabTeacher" class="login-tab active">👨‍🏫 Преподаватель</div><div id="loginTabStudent" class="login-tab">👨‍🎓 Студент</div></div>
     <div id="teacherLoginForm" class="login-form"><div class="form-group"><label>Логин</label><input type="text" id="teacherLogin" value="teacher"></div><div class="form-group"><label>Пароль</label><input type="password" id="teacherPassword" value="123"></div><button class="login-btn" id="teacherLoginBtn">Войти как преподаватель</button></div>
     <div id="studentLoginForm" class="login-form hidden"><div class="form-group"><label>Выбери себя</label><select id="studentSelect"></select></div><div class="form-group"><label>Пароль</label><input type="password" id="studentPassword" value="123"></div><button class="login-btn" id="studentLoginBtn">Войти как студент</button></div>
-    <div class="demo-info"><i class="fas fa-info-circle"></i> Преподаватель: teacher/123 | Студент: 123 | Данные автосохраняются</div></div>
+    <div class="demo-info"><i class="fas fa-info-circle"></i> Преподаватель: teacher / 123 | Студент: любой / 123 | Данные сохраняются автоматически</div></div>
 </div>
 <div id="appScreen" class="app-card hidden">
     <div class="app-header"><div class="header-top"><div class="header-left"><h1><i class="fas fa-book-open"></i> EduTrack</h1><p id="roleDescription">Загрузка...</p></div><div class="user-info"><span id="userNameDisplay">Пользователь</span><span class="user-role" id="userRoleDisplay">Роль</span><button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Выйти</button></div></div></div>
@@ -173,186 +160,335 @@
     </div>
     <div id="studentDashboard" class="main-dashboard hidden"><div class="student-profile"><div class="student-welcome" id="studentWelcome"></div><div class="student-group" id="studentGroup"></div><div class="student-stats"><div class="student-stat-card"><h3>Ср. балл</h3><div class="value" id="studentAvgGrade">—</div></div><div class="student-stat-card"><h3>Посещ.</h3><div class="value" id="studentAvgAttendance">—%</div></div><div class="student-stat-card"><h3>Предметов</h3><div class="value" id="studentSubjectsCount">0</div></div></div><div class="subjects-student"><h3 style="margin-bottom:0.8rem;">Детали по предметам</h3><div id="studentDetailedLessons"></div></div></div></div>
 </div>
-
-<!-- Плавающая кнопка сохранения (только для преподавателя) -->
-<div id="saveFab" class="save-data-fab" title="Сохранить все данные">
-    <i class="fas fa-save"></i>
-</div>
+<div id="saveFab" class="save-data-fab" title="Сохранить данные"><i class="fas fa-save"></i></div>
 
 <script>
 (function(){
-    // ---------- ГЛОБАЛЬНЫЕ ДАННЫЕ ----------
-    let globalStudents = [];      // { name, group }
+    // Упрощенная и надежная версия для GitHub Pages
+    console.log("EduTrack загружается...");
+    
+    let globalStudents = [];
     let groups = new Set();
     let subjects = [];
     let currentSubjectId = null;
     let currentUser = null;
     let editingLessonIndex = null;
     let currentGroupFilter = 'all';
-
-    // ---------- СОХРАНЕНИЕ И ЗАГРУЗКА В localStorage ----------
-    const STORAGE_KEY = 'EduTrack_Data';
     
-    function saveAllToLocalStorage() {
+    const STORAGE_KEY = 'EduTrack_Data_v2';
+    
+    function saveToLocalStorage() {
         try {
-            const dataToSave = {
+            const data = {
                 students: globalStudents,
                 groups: Array.from(groups),
-                subjects: subjects.map(sub => ({
-                    ...sub,
-                    // Сохраняем уроки без fileUrl (это blob ссылки, их нельзя восстановить), но fileName оставляем
-                    lessons: sub.lessons.map(lesson => ({
-                        date: lesson.date,
-                        topic: lesson.topic,
-                        fileName: lesson.fileName || null,
-                        // fileUrl не сохраняем, т.к. это временные blob-ссылки
-                        fileUrl: null,
-                        present: [...lesson.present],
-                        grades: [...lesson.grades]
+                subjects: subjects.map(s => ({
+                    id: s.id, name: s.name,
+                    lessons: s.lessons.map(l => ({
+                        date: l.date, topic: l.topic, fileName: l.fileName,
+                        present: [...l.present], grades: [...l.grades]
                     }))
                 })),
                 currentSubjectId: currentSubjectId,
                 currentGroupFilter: currentGroupFilter
             };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
-            showToast('✅ Данные сохранены');
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            showToast("💾 Сохранено");
             return true;
-        } catch(e) {
-            console.error('Ошибка сохранения:', e);
-            showToast('❌ Ошибка сохранения');
-            return false;
-        }
+        } catch(e) { return false; }
     }
     
     function loadFromLocalStorage() {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if(!saved) return false;
         try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if(!saved) return false;
             const data = JSON.parse(saved);
             globalStudents = data.students || [];
             groups = new Set(data.groups || []);
-            subjects = (data.subjects || []).map(sub => ({
-                ...sub,
-                lessons: (sub.lessons || []).map(lesson => ({
-                    ...lesson,
-                    fileUrl: null, // blob не восстанавливаем
-                    present: lesson.present || [],
-                    grades: lesson.grades || []
+            subjects = (data.subjects || []).map(s => ({
+                ...s,
+                lessons: (s.lessons || []).map(l => ({
+                    ...l, fileUrl: null,
+                    present: l.present || [], grades: l.grades || []
                 }))
             }));
-            currentSubjectId = data.currentSubjectId !== undefined ? data.currentSubjectId : (subjects.length > 0 ? subjects[0].id : null);
+            currentSubjectId = data.currentSubjectId;
             currentGroupFilter = data.currentGroupFilter || 'all';
+            if(subjects.length > 0 && !currentSubjectId) currentSubjectId = subjects[0].id;
             return true;
-        } catch(e) {
-            console.error('Ошибка загрузки:', e);
-            return false;
-        }
+        } catch(e) { return false; }
     }
     
-    function showToast(message) {
-        const existing = document.querySelector('.toast-msg');
-        if(existing) existing.remove();
-        const toast = document.createElement('div');
-        toast.className = 'toast-msg';
-        toast.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 2000);
+    function showToast(msg) {
+        let t = document.querySelector('.toast-msg');
+        if(t) t.remove();
+        t = document.createElement('div');
+        t.className = 'toast-msg';
+        t.innerHTML = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 2000);
     }
     
-    // Автосохранение после любых изменений (кроме загрузки)
-    let autoSaveTimer = null;
-    function autoSave() {
-        if(autoSaveTimer) clearTimeout(autoSaveTimer);
-        autoSaveTimer = setTimeout(() => {
-            if(currentUser && currentUser.role === 'teacher') {
-                saveAllToLocalStorage();
-            }
-        }, 500);
-    }
+    function autoSave() { if(currentUser?.role === 'teacher') saveToLocalStorage(); }
     
-    // Обертки для функций, которые изменяют данные
-    const originalAddStudent = null, originalAddLesson = null, originalAddSubject = null, originalDeleteSubject = null, originalDeleteGroup = null;
-    
-    // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
+    // Базовые функции
     function getCurrentSubject() { return subjects.find(s => s.id === currentSubjectId); }
     function getFilteredStudents() { return currentGroupFilter === 'all' ? globalStudents : globalStudents.filter(s => s.group === currentGroupFilter); }
-    function getStudentIndexInGlobal(filteredIndex) { const filtered = getFilteredStudents(); if(filteredIndex<0||filteredIndex>=filtered.length) return -1; const student = filtered[filteredIndex]; return globalStudents.findIndex(s => s.name === student.name && s.group === student.group); }
-    function calculateAttendance(studentIndex) { const subject = getCurrentSubject(); if(!subject||!subject.lessons.length) return 0; let presentCount=0; subject.lessons.forEach(l=>{if(l.present && l.present[studentIndex]) presentCount++;}); return Math.round((presentCount/subject.lessons.length)*100); }
-    function calculateGrade(studentIndex) { const subject = getCurrentSubject(); if(!subject||!subject.lessons.length) return null; let sum=0,count=0; subject.lessons.forEach(l=>{if(l.grades && l.grades[studentIndex]!==null && l.grades[studentIndex]!==undefined){sum+=l.grades[studentIndex]; count++;}}); return count>0?Math.round((sum/count)*10)/10:null; }
-    function getStudentSubjectStats(studentIndex, subject) { let gradeSum=0,gradeCount=0,presentCount=0; subject.lessons.forEach(lesson=>{if(lesson.grades&&lesson.grades[studentIndex]!==null){gradeSum+=lesson.grades[studentIndex]; gradeCount++;} if(lesson.present&&lesson.present[studentIndex]) presentCount++;}); const avgGrade=gradeCount>0?(gradeSum/gradeCount).toFixed(1):'—'; const attendance=subject.lessons.length>0?Math.round((presentCount/subject.lessons.length)*100):0; return {avgGrade,attendance}; }
-    
-    function renderDetailedGroupStats(){ if(currentGroupFilter==='all'){ document.getElementById('detailedGroupStats').classList.add('hidden'); return; } const groupStudents=globalStudents.filter(s=>s.group===currentGroupFilter); if(!groupStudents.length){document.getElementById('detailedGroupStats').classList.add('hidden'); return;} document.getElementById('detailedGroupStats').classList.remove('hidden'); document.getElementById('statsGroupName').textContent=currentGroupFilter; let headerHtml='<table><th>Студент</th>'; subjects.forEach(sub=>{headerHtml+=`<th>${sub.name}<br><small>ср.оц/пос%</small></th>`;}); headerHtml+='<th>Общий<br>ср.балл</th><th>Общая<br>пос.%</th></tr>'; document.getElementById('groupStatsHeader').innerHTML=headerHtml; let bodyHtml=''; groupStudents.forEach(student=>{const globalIdx=globalStudents.findIndex(s=>s.name===student.name&&s.group===student.group); if(globalIdx===-1)return; bodyHtml+='<tr>'; bodyHtml+=`<td class="student-name-cell">${student.name}</td>`; let totalGradeSum=0,totalGradeCount=0,totalPresent=0,totalLessons=0; subjects.forEach(subject=>{const stats=getStudentSubjectStats(globalIdx,subject); bodyHtml+=`<td><span class="subject-grade">${stats.avgGrade}</span> / <span class="attendance-badge">${stats.attendance}%</span></td>`; if(stats.avgGrade!=='—'){totalGradeSum+=parseFloat(stats.avgGrade); totalGradeCount++;} subject.lessons.forEach(lesson=>{if(lesson.present&&lesson.present[globalIdx]) totalPresent++; totalLessons++;}); }); const overallGrade=totalGradeCount>0?(totalGradeSum/totalGradeCount).toFixed(1):'—'; const overallAttendance=totalLessons>0?Math.round((totalPresent/totalLessons)*100):0; bodyHtml+=`<td><span class="subject-grade">${overallGrade}</span></td><td class="attendance-badge">${overallAttendance}%</td></tr>`;}); document.getElementById('groupStatsBody').innerHTML=bodyHtml; }
-    
-    function updateGroupTabs(){ const uniqueGroups=Array.from(groups); let tabsHtml=`<div class="group-tab ${currentGroupFilter==='all'?'active':''}" data-group="all">📋 Все группы</div>`; uniqueGroups.forEach(g=>{tabsHtml+=`<div class="group-tab ${currentGroupFilter===g?'active':''}" data-group="${g}">👥 ${g}</div>`;}); const groupsBarDiv=document.getElementById('groupsBar'); groupsBarDiv.innerHTML=tabsHtml+`<div class="group-actions"><div class="add-group-btn" id="addGroupBtn"><i class="fas fa-plus"></i> Группа</div><div class="delete-group-btn" id="deleteGroupBtn"><i class="fas fa-trash"></i> Удалить группу</div></div>`; document.querySelectorAll('.group-tab').forEach(tab=>{tab.addEventListener('click',(e)=>{const group=e.currentTarget.dataset.group; currentGroupFilter=group; updateGroupTabs(); renderTeacherTable(); renderDetailedGroupStats(); autoSave();});}); document.getElementById('addGroupBtn')?.addEventListener('click',()=>{const ng=prompt('Название группы:'); if(ng){groups.add(ng); updateGroupSelect(); updateGroupTabs(); renderDetailedGroupStats(); autoSave();}}); document.getElementById('deleteGroupBtn')?.addEventListener('click',()=>{if(currentGroupFilter==='all'){alert('Выберите группу');return;} if(confirm(`Удалить группу "${currentGroupFilter}"?`)){globalStudents=globalStudents.filter(s=>s.group!==currentGroupFilter); groups.delete(currentGroupFilter); subjects.forEach(sub=>{sub.lessons.forEach(lesson=>{const newP=[],newG=[]; globalStudents.forEach((_,idx)=>{newP.push(lesson.present[idx]||false); newG.push(lesson.grades[idx]||null);}); lesson.present=newP; lesson.grades=newG;});}); currentGroupFilter='all'; updateGroupSelect(); updateGroupTabs(); renderTeacherTable(); renderDetailedGroupStats(); updateStudentSelect(); autoSave();}}); }
-    
-    function updateGroupSelect(){ const sel=document.getElementById('studentGroupSelect'); sel.innerHTML=''; Array.from(groups).forEach(g=>{const opt=document.createElement('option'); opt.value=g; opt.textContent=g; sel.appendChild(opt);}); }
-    function updateStudentSelect(){ const sel=document.getElementById('studentSelect'); sel.innerHTML=''; if(globalStudents.length===0){const opt=document.createElement('option'); opt.textContent='Нет студентов'; opt.disabled=true; sel.appendChild(opt);}else{globalStudents.forEach((s,idx)=>{const opt=document.createElement('option'); opt.value=idx; opt.textContent=`${s.name} (${s.group})`; sel.appendChild(opt);});} }
-    
-    function renderSubjectTabs(){ const container=document.getElementById('subjectsTabs'); container.innerHTML=''; if(subjects.length===0){container.innerHTML='<div style="color:#8aa0b8;">Нет предметов</div>'; return;} subjects.forEach(sub=>{const tab=document.createElement('div'); tab.className=`subject-tab ${sub.id===currentSubjectId?'active':''}`; tab.innerHTML=`<i class="fas fa-book"></i> ${sub.name}`; tab.addEventListener('click',()=>{currentSubjectId=sub.id; editingLessonIndex=null; renderSubjectTabs(); renderTeacherTable(); renderLessonsList(); document.getElementById('currentSubjectTitle').textContent=sub.name; autoSave();}); container.appendChild(tab);}); }
-    
-    function renderLessonsList(){ const subject=getCurrentSubject(); const lessonsDiv=document.getElementById('lessonsList'); if(!subject){lessonsDiv.innerHTML='';return;} lessonsDiv.innerHTML=''; subject.lessons.forEach((lesson,idx)=>{const lessonDiv=document.createElement('div'); lessonDiv.className=`lesson-item ${editingLessonIndex===idx?'active':''}`; const dateStr=new Date(lesson.date).toLocaleDateString('ru-RU').slice(0,5); const topicShort=lesson.topic?lesson.topic.substring(0,10)+(lesson.topic.length>10?'…':''):''; const presentCount=lesson.present?lesson.present.filter(v=>v).length:0; const fileIcon=lesson.fileUrl?'<span class="file-indicator"><i class="fas fa-paperclip"></i></span>':''; lessonDiv.innerHTML=`${dateStr} ${topicShort?'📘'+topicShort:''} ${presentCount}/${globalStudents.length} ${fileIcon}`; const actionsSpan=document.createElement('span'); actionsSpan.className='lesson-actions'; const fileBtn=document.createElement('button'); fileBtn.className='lesson-file-btn'; fileBtn.innerHTML='<i class="fas fa-paperclip"></i>'; fileBtn.title=lesson.fileUrl?'Заменить файл':'Прикрепить файл'; fileBtn.addEventListener('click',(e)=>{e.stopPropagation(); const inp=document.createElement('input'); inp.type='file'; inp.style.display='none'; document.body.appendChild(inp); inp.addEventListener('change',()=>{if(inp.files[0]){if(lesson.fileUrl) URL.revokeObjectURL(lesson.fileUrl); lesson.fileUrl=URL.createObjectURL(inp.files[0]); lesson.fileName=inp.files[0].name; renderLessonsList(); renderTeacherTable(); renderDetailedGroupStats(); autoSave();} document.body.removeChild(inp);}); inp.click();}); actionsSpan.appendChild(fileBtn); lessonDiv.appendChild(actionsSpan); lessonDiv.addEventListener('click',(e)=>{if(e.target.closest('.lesson-file-btn')) return; if(currentUser?.role==='teacher'){editingLessonIndex=idx; renderLessonsList(); renderTeacherTable();}}); lessonsDiv.appendChild(lessonDiv);}); }
-    
-    function renderTeacherTable(){ const subject=getCurrentSubject(); if(!subject){document.getElementById('teacherTableBody').innerHTML='<tr><td colspan="5">Создайте предмет</td></tr>';return;} document.getElementById('currentSubjectTitle').textContent=subject.name; const isEdit=editingLessonIndex!==null; document.getElementById('lessonEditMode').style.display=isEdit?'block':'none'; if(isEdit){const lesson=subject.lessons[editingLessonIndex]; const dateStr=new Date(lesson.date).toLocaleDateString('ru-RU'); document.getElementById('activeLessonDisplay').innerHTML=`Урок: ${dateStr} ${lesson.topic?`«${lesson.topic}»`:''}`;} document.getElementById('gradeColumnTitle').textContent=isEdit?'Оценка':'Ср. оценка'; document.getElementById('attendanceColumnTitle').textContent=isEdit?'Присутствие':'Посещ. %'; const filtered=getFilteredStudents(); const tbody=document.getElementById('teacherTableBody'); tbody.innerHTML=''; if(filtered.length===0){tbody.innerHTML='<tr><td colspan="5">Нет студентов</td></tr>'; return;} subject.lessons.forEach(lesson=>{while(lesson.present.length<globalStudents.length) lesson.present.push(false); while(lesson.grades.length<globalStudents.length) lesson.grades.push(null);}); filtered.forEach((student,idx)=>{const globalIdx=getStudentIndexInGlobal(idx); if(globalIdx===-1)return; const row=document.createElement('tr'); const nameCell=document.createElement('td'); nameCell.innerHTML=`<div class="student-name"><span class="avatar-small">${student.name.split(' ').map(w=>w[0]).join('').substring(0,2)}</span> ${student.name.split(' ')[0]}</div>`; const groupCell=document.createElement('td'); groupCell.textContent=student.group; const gradeCell=document.createElement('td'); if(isEdit){const lesson=subject.lessons[editingLessonIndex]; const input=document.createElement('input'); input.type='number'; input.className='lesson-grade-input'; input.value=lesson.grades[globalIdx]!==null?lesson.grades[globalIdx]:''; input.step=0.1; input.min=2; input.max=5; input.placeholder='—'; input.addEventListener('change',()=>{const val=input.value.trim(); lesson.grades[globalIdx]=val===''?null:Math.min(5,Math.max(2,parseFloat(val)||2)); updateTeacherStats(); renderDetailedGroupStats(); autoSave();}); gradeCell.appendChild(input);}else{const avg=calculateGrade(globalIdx); const span=document.createElement('span'); span.className=`grade-pill ${avg===null?'empty':''}`; span.textContent=avg!==null?avg.toFixed(1):'—'; gradeCell.appendChild(span);} const attCell=document.createElement('td'); if(isEdit){const lesson=subject.lessons[editingLessonIndex]; const chk=document.createElement('input'); chk.type='checkbox'; chk.className='attendance-checkbox'; chk.checked=lesson.present[globalIdx]||false; chk.addEventListener('change',()=>{lesson.present[globalIdx]=chk.checked; renderLessonsList(); updateTeacherStats(); renderDetailedGroupStats(); autoSave();}); attCell.appendChild(chk);}else{const att=calculateAttendance(globalIdx); attCell.innerHTML=`<div class="attendance-display">${att}%</div><div class="attendance-bar-bg"><div class="attendance-bar-fill" style="width:${att}%;"></div></div>`;} const actionCell=document.createElement('td'); const editBtn=document.createElement('button'); editBtn.className='edit-small'; editBtn.innerHTML='<i class="fas fa-pencil-alt"></i>'; editBtn.addEventListener('click',()=>{const newName=prompt('Имя:',student.name); if(newName)student.name=newName; const newGroup=prompt('Группа:',student.group); if(newGroup){groups.add(newGroup); student.group=newGroup;} updateGroupSelect(); updateGroupTabs(); renderTeacherTable(); updateStudentSelect(); renderDetailedGroupStats(); autoSave();}); const delBtn=document.createElement('button'); delBtn.className='delete-small'; delBtn.innerHTML='<i class="fas fa-trash-can"></i>'; delBtn.addEventListener('click',()=>{if(confirm(`Удалить ${student.name}?`)){globalStudents.splice(globalIdx,1); subjects.forEach(s=>{s.lessons.forEach(l=>{l.present.splice(globalIdx,1); l.grades.splice(globalIdx,1);});}); groups.clear(); globalStudents.forEach(s=>groups.add(s.group)); updateGroupSelect(); updateGroupTabs(); renderTeacherTable(); renderLessonsList(); updateStudentSelect(); renderDetailedGroupStats(); autoSave();}}); actionCell.appendChild(editBtn); actionCell.appendChild(delBtn); row.appendChild(nameCell); row.appendChild(groupCell); row.appendChild(gradeCell); row.appendChild(attCell); row.appendChild(actionCell); tbody.appendChild(row);}); updateTeacherStats(); renderDetailedGroupStats(); }
-    
-    function updateTeacherStats(){ const subject=getCurrentSubject(); if(!subject)return; const filtered=getFilteredStudents(); const count=filtered.length; document.getElementById('studentCount').textContent=count; if(count===0){document.getElementById('avgGrade').textContent='—'; document.getElementById('avgAtt').textContent='—%'; document.getElementById('attendanceMessage').innerHTML='<i class="fas fa-chart-line"></i> Нет студентов'; return;} let sumGrade=0,gradeCount=0,sumAtt=0; filtered.forEach((_,idx)=>{const globalIdx=getStudentIndexInGlobal(idx); const grade=calculateGrade(globalIdx); if(grade!==null){sumGrade+=grade; gradeCount++;} sumAtt+=calculateAttendance(globalIdx);}); document.getElementById('avgGrade').textContent=gradeCount>0?(sumGrade/gradeCount).toFixed(2):'—'; const avgAtt=Math.round(sumAtt/count); document.getElementById('avgAtt').textContent=avgAtt+'%'; document.getElementById('attendanceMessage').innerHTML=avgAtt>=90?'Отличная посещаемость!':avgAtt>=75?'Хорошая посещаемость':avgAtt>=60?'Средняя посещаемость':'Низкая посещаемость'; }
-    
-    function addStudent(){ const name=document.getElementById('studentNameInput').value.trim(); if(!name)return alert('Введите имя'); const group=document.getElementById('studentGroupSelect').value; globalStudents.push({name,group}); groups.add(group); subjects.forEach(sub=>{sub.lessons.forEach(lesson=>{lesson.present.push(false); lesson.grades.push(null);});}); document.getElementById('studentNameInput').value=''; updateGroupSelect(); updateGroupTabs(); renderTeacherTable(); renderLessonsList(); updateStudentSelect(); renderDetailedGroupStats(); autoSave(); }
-    function addLesson(){ const subject=getCurrentSubject(); if(!subject)return alert('Создайте предмет'); const dateStr=prompt('Дата (ГГГГ-ММ-ДД):',new Date().toISOString().slice(0,10)); if(!dateStr)return; const topic=prompt('Тема урока:','')||''; subject.lessons.push({date:dateStr,topic:topic,fileUrl:null,fileName:null,present:globalStudents.map(()=>false),grades:globalStudents.map(()=>null)}); renderLessonsList(); renderTeacherTable(); autoSave(); }
-    function addSubject(){ const name=prompt('Название предмета:'); if(!name)return; const newId='subj_'+Date.now()+Math.random(); subjects.push({id:newId,name:name,lessons:[]}); if(subjects.length===1)currentSubjectId=newId; editingLessonIndex=null; renderSubjectTabs(); renderTeacherTable(); renderLessonsList(); document.getElementById('currentSubjectTitle').textContent=getCurrentSubject()?.name||''; renderDetailedGroupStats(); autoSave(); }
-    function deleteCurrentSubject(){ if(subjects.length===0)return alert('Нет предметов'); if(!confirm('Удалить предмет?'))return; subjects=subjects.filter(s=>s.id!==currentSubjectId); if(subjects.length>0)currentSubjectId=subjects[0].id; else currentSubjectId=null; editingLessonIndex=null; renderSubjectTabs(); renderTeacherTable(); renderLessonsList(); document.getElementById('currentSubjectTitle').textContent=getCurrentSubject()?.name||'Нет предметов'; renderDetailedGroupStats(); autoSave(); }
-    
-    function renderStudentDetailedLessons(){ if(!currentUser||currentUser.role!=='student')return; const studentIdx=currentUser.id; let html=''; subjects.forEach(subject=>{if(subject.lessons.length===0)return; let lessonsHtml=''; subject.lessons.forEach(lesson=>{const dateStr=new Date(lesson.date).toLocaleDateString('ru-RU'); const present=lesson.present[studentIdx]?'✅':'❌'; const grade=lesson.grades[studentIdx]!==null?lesson.grades[studentIdx].toFixed(1):'—'; const topic=lesson.topic?`<div class="topic-badge"><i class="fas fa-tag"></i> ${lesson.topic}</div>`:''; const file=lesson.fileUrl?`<a href="${lesson.fileUrl}" target="_blank" download="${lesson.fileName||'file'}" class="file-link"><i class="fas fa-paperclip"></i> ${lesson.fileName?lesson.fileName.substring(0,15)+'…':'файл'}</a>`:''; lessonsHtml+=`<tr><td>${dateStr}</td><td>${present}</td><td>${grade}</td><td>${topic} ${file}</td></tr>`;}); html+=`<div class="subject-accordion"><div class="subject-accordion-header" onclick="this.nextElementSibling.classList.toggle('hidden')"><span><i class="fas fa-book"></i> ${subject.name}</span><i class="fas fa-chevron-down"></i></div><div class="subject-accordion-content"><table class="student-lessons-table"><thead><tr><th>Дата</th><th>Пос.</th><th>Оценка</th><th>Тема / Файл</th></tr></thead><tbody>${lessonsHtml}</tbody></table></div></div>`;}); document.getElementById('studentDetailedLessons').innerHTML=html||'<div class="no-data">Нет данных</div>'; }
-    function renderStudentDashboard(){ if(!currentUser||currentUser.role!=='student')return; const student=globalStudents[currentUser.id]; if(!student)return; document.getElementById('studentWelcome').textContent=`Привет, ${student.name.split(' ')[0]}!`; document.getElementById('studentGroup').textContent=`Группа: ${student.group}`; let totalGradeSum=0,totalGradeCount=0,totalAttSum=0; subjects.forEach(sub=>{let sum=0,count=0; sub.lessons.forEach(l=>{if(l.grades&&l.grades[currentUser.id]!==null){sum+=l.grades[currentUser.id]; count++;}}); let presentCount=0; sub.lessons.forEach(l=>{if(l.present&&l.present[currentUser.id])presentCount++;}); const att=sub.lessons.length>0?Math.round((presentCount/sub.lessons.length)*100):0; if(count>0){totalGradeSum+=(sum/count); totalGradeCount++;} totalAttSum+=att;}); document.getElementById('studentAvgGrade').textContent=totalGradeCount>0?(totalGradeSum/totalGradeCount).toFixed(2):'—'; document.getElementById('studentAvgAttendance').textContent=subjects.length>0?Math.round(totalAttSum/subjects.length)+'%':'—%'; document.getElementById('studentSubjectsCount').textContent=subjects.length; renderStudentDetailedLessons(); }
-    
-    function loginAsTeacher(){ 
-        currentUser={role:'teacher',id:null}; 
-        document.getElementById('userNameDisplay').textContent='Преподаватель'; 
-        document.getElementById('userRoleDisplay').textContent='Преподаватель'; 
-        document.getElementById('roleDescription').textContent='Режим преподавателя'; 
-        document.getElementById('teacherDashboard').classList.remove('hidden'); 
-        document.getElementById('studentDashboard').classList.add('hidden'); 
-        updateGroupTabs(); renderSubjectTabs(); renderTeacherTable(); renderLessonsList(); renderDetailedGroupStats(); 
-        document.getElementById('loginScreen').classList.add('hidden'); 
-        document.getElementById('appScreen').classList.remove('hidden'); 
-        updateSaveButtonVisibility(); 
-    }
-    function loginAsStudent(studentIndex){ if(studentIndex===undefined||studentIndex<0||studentIndex>=globalStudents.length){alert('Выберите студента');return;} currentUser={role:'student',id:studentIndex}; const student=globalStudents[studentIndex]; document.getElementById('userNameDisplay').textContent=student.name.split(' ')[0]; document.getElementById('userRoleDisplay').textContent='Студент'; document.getElementById('roleDescription').textContent='Режим студента'; document.getElementById('teacherDashboard').classList.add('hidden'); document.getElementById('studentDashboard').classList.remove('hidden'); renderStudentDashboard(); document.getElementById('loginScreen').classList.add('hidden'); document.getElementById('appScreen').classList.remove('hidden'); updateSaveButtonVisibility(); }
-    function logout(){ currentUser=null; editingLessonIndex=null; document.getElementById('loginScreen').classList.remove('hidden'); document.getElementById('appScreen').classList.add('hidden'); document.getElementById('loginTabTeacher').classList.add('active'); document.getElementById('loginTabStudent').classList.remove('active'); document.getElementById('teacherLoginForm').classList.remove('hidden'); document.getElementById('studentLoginForm').classList.add('hidden'); updateSaveButtonVisibility(); }
-    
-    function updateSaveButtonVisibility() {
-        const fab = document.getElementById('saveFab');
-        if(currentUser && currentUser.role === 'teacher') fab.classList.remove('hidden');
-        else fab.classList.add('hidden');
+    function getStudentIndexInGlobal(fi) { 
+        const f = getFilteredStudents();
+        if(fi<0||fi>=f.length) return -1;
+        return globalStudents.findIndex(s => s.name === f[fi].name && s.group === f[fi].group);
     }
     
-    function manualSave() {
-        if(currentUser && currentUser.role === 'teacher') saveAllToLocalStorage();
-        else alert('Сохранение доступно только преподавателям');
+    function calculateAttendance(si) {
+        const sub = getCurrentSubject();
+        if(!sub||!sub.lessons.length) return 0;
+        let pc=0;
+        sub.lessons.forEach(l=>{ if(l.present[si]) pc++; });
+        return Math.round((pc/sub.lessons.length)*100);
     }
     
-    // Инициализация
+    function calculateGrade(si) {
+        const sub = getCurrentSubject();
+        if(!sub||!sub.lessons.length) return null;
+        let sum=0,c=0;
+        sub.lessons.forEach(l=>{ if(l.grades[si]!==null && l.grades[si]!==undefined){ sum+=l.grades[si]; c++; } });
+        return c>0 ? Math.round((sum/c)*10)/10 : null;
+    }
+    
+    function getStudentSubjectStats(si, sub) {
+        let gs=0,gc=0,pc=0;
+        sub.lessons.forEach(l=>{
+            if(l.grades[si]!==null){ gs+=l.grades[si]; gc++; }
+            if(l.present[si]) pc++;
+        });
+        return { avgGrade: gc>0 ? (gs/gc).toFixed(1) : '—', attendance: sub.lessons.length>0 ? Math.round((pc/sub.lessons.length)*100) : 0 };
+    }
+    
+    // Рендеры (упрощенные)
+    function renderDetailedGroupStats() {
+        let el = document.getElementById('detailedGroupStats');
+        if(currentGroupFilter==='all' || !globalStudents.filter(s=>s.group===currentGroupFilter).length){
+            el.classList.add('hidden'); return;
+        }
+        el.classList.remove('hidden');
+        document.getElementById('statsGroupName').textContent = currentGroupFilter;
+        let header = '<tr><th>Студент</th>';
+        subjects.forEach(s=>{ header+=`<th>${s.name}<br><small>ср/пос%</small></th>`; });
+        header+='<th>Общий ср</th><th>Общ пос%</th></tr>';
+        document.getElementById('groupStatsHeader').innerHTML = header;
+        let body = '';
+        globalStudents.filter(s=>s.group===currentGroupFilter).forEach(st=>{
+            let gi = globalStudents.findIndex(x=>x.name===st.name&&x.group===st.group);
+            if(gi===-1) return;
+            body += '<tr>';
+            body += `<td class="student-name-cell">${st.name}</td>`;
+            let totalGrade=0, gradeCount=0, totalPresent=0, totalLessons=0;
+            subjects.forEach(sub=>{
+                let sts = getStudentSubjectStats(gi, sub);
+                body += `<td><span class="subject-grade">${sts.avgGrade}</span> / <span class="attendance-badge">${sts.attendance}%</span></td>`;
+                if(sts.avgGrade!=='—'){ totalGrade+=parseFloat(sts.avgGrade); gradeCount++; }
+                sub.lessons.forEach(l=>{ if(l.present[gi]) totalPresent++; totalLessons++; });
+            });
+            let avgG = gradeCount>0 ? (totalGrade/gradeCount).toFixed(1) : '—';
+            let avgA = totalLessons>0 ? Math.round((totalPresent/totalLessons)*100) : 0;
+            body += `<td><span class="subject-grade">${avgG}</span></td><td class="attendance-badge">${avgA}%</td></tr>`;
+        });
+        document.getElementById('groupStatsBody').innerHTML = body;
+    }
+    
+    function updateGroupTabs(){
+        let html = `<div class="group-tab ${currentGroupFilter==='all'?'active':''}" data-group="all">📋 Все</div>`;
+        Array.from(groups).forEach(g=>{ html+=`<div class="group-tab ${currentGroupFilter===g?'active':''}" data-group="${g}">👥 ${g}</div>`; });
+        html += `<div class="group-actions"><div class="add-group-btn" id="addGroupBtn"><i class="fas fa-plus"></i> Группа</div><div class="delete-group-btn" id="deleteGroupBtn"><i class="fas fa-trash"></i> Удалить</div></div>`;
+        document.getElementById('groupsBar').innerHTML = html;
+        document.querySelectorAll('.group-tab').forEach(t=>{
+            t.addEventListener('click',()=>{ currentGroupFilter = t.dataset.group; updateGroupTabs(); renderTeacherTable(); renderDetailedGroupStats(); autoSave(); });
+        });
+        document.getElementById('addGroupBtn')?.addEventListener('click',()=>{
+            let ng = prompt('Название группы:'); if(ng){ groups.add(ng); updateGroupSelect(); updateGroupTabs(); renderDetailedGroupStats(); autoSave(); }
+        });
+        document.getElementById('deleteGroupBtn')?.addEventListener('click',()=>{
+            if(currentGroupFilter==='all'){ alert('Выберите группу'); return; }
+            if(confirm(`Удалить группу "${currentGroupFilter}"?`)){
+                globalStudents = globalStudents.filter(s=>s.group!==currentGroupFilter);
+                groups.delete(currentGroupFilter);
+                subjects.forEach(sub=>{ sub.lessons.forEach(l=>{ let np=[], ng=[]; globalStudents.forEach((_,idx)=>{ np.push(l.present[idx]||false); ng.push(l.grades[idx]||null); }); l.present=np; l.grades=ng; }); });
+                currentGroupFilter='all';
+                updateGroupSelect(); updateGroupTabs(); renderTeacherTable(); renderDetailedGroupStats(); updateStudentSelect(); autoSave();
+            }
+        });
+    }
+    
+    function updateGroupSelect(){
+        let sel = document.getElementById('studentGroupSelect');
+        sel.innerHTML = '';
+        Array.from(groups).forEach(g=>{ let opt = document.createElement('option'); opt.value=g; opt.textContent=g; sel.appendChild(opt); });
+    }
+    function updateStudentSelect(){
+        let sel = document.getElementById('studentSelect');
+        sel.innerHTML = '';
+        if(globalStudents.length===0){ let o=document.createElement('option'); o.textContent='Нет студентов'; o.disabled=true; sel.appendChild(o); }
+        else{ globalStudents.forEach((s,i)=>{ let o=document.createElement('option'); o.value=i; o.textContent=`${s.name} (${s.group})`; sel.appendChild(o); }); }
+    }
+    
+    function renderSubjectTabs(){
+        let cont = document.getElementById('subjectsTabs');
+        cont.innerHTML = '';
+        if(subjects.length===0){ cont.innerHTML='<div>Нет предметов</div>'; return; }
+        subjects.forEach(sub=>{
+            let tab = document.createElement('div');
+            tab.className = `subject-tab ${sub.id===currentSubjectId?'active':''}`;
+            tab.innerHTML = `<i class="fas fa-book"></i> ${sub.name}`;
+            tab.onclick = () => { currentSubjectId=sub.id; editingLessonIndex=null; renderSubjectTabs(); renderTeacherTable(); renderLessonsList(); document.getElementById('currentSubjectTitle').textContent=sub.name; autoSave(); };
+            cont.appendChild(tab);
+        });
+    }
+    
+    function renderLessonsList(){
+        let sub = getCurrentSubject();
+        let div = document.getElementById('lessonsList');
+        if(!sub){ div.innerHTML=''; return; }
+        div.innerHTML = '';
+        sub.lessons.forEach((l,idx)=>{
+            let ld = document.createElement('div');
+            ld.className = `lesson-item ${editingLessonIndex===idx?'active':''}`;
+            let dateStr = new Date(l.date).toLocaleDateString('ru-RU').slice(0,5);
+            ld.innerHTML = `${dateStr} ${l.topic?l.topic.slice(0,10):''} ${l.present.filter(v=>v).length}/${globalStudents.length}`;
+            let fileBtn = document.createElement('button');
+            fileBtn.className='lesson-file-btn'; fileBtn.innerHTML='<i class="fas fa-paperclip"></i>';
+            fileBtn.onclick = (e)=>{ e.stopPropagation(); alert('Файлы не сохраняются в localStorage'); };
+            ld.appendChild(fileBtn);
+            ld.onclick = () => { if(currentUser?.role==='teacher'){ editingLessonIndex=idx; renderLessonsList(); renderTeacherTable(); } };
+            div.appendChild(ld);
+        });
+    }
+    
+    function renderTeacherTable(){
+        let sub = getCurrentSubject();
+        if(!sub){ document.getElementById('teacherTableBody').innerHTML='<tr><td colspan="5">Создайте предмет</td></tr>'; return; }
+        document.getElementById('currentSubjectTitle').textContent = sub.name;
+        let isEdit = editingLessonIndex!==null;
+        document.getElementById('lessonEditMode').style.display = isEdit ? 'block' : 'none';
+        if(isEdit){
+            let l = sub.lessons[editingLessonIndex];
+            document.getElementById('activeLessonDisplay').innerHTML = `Урок: ${new Date(l.date).toLocaleDateString()} ${l.topic?`«${l.topic}»`:''}`;
+        }
+        let filtered = getFilteredStudents();
+        let tbody = document.getElementById('teacherTableBody');
+        tbody.innerHTML = '';
+        if(filtered.length===0){ tbody.innerHTML='<td><td colspan="5">Нет студентов</td></tr>'; return; }
+        sub.lessons.forEach(l=>{ while(l.present.length<globalStudents.length) l.present.push(false); while(l.grades.length<globalStudents.length) l.grades.push(null); });
+        filtered.forEach((st,idx)=>{
+            let gi = getStudentIndexInGlobal(idx);
+            if(gi===-1) return;
+            let tr = document.createElement('tr');
+            tr.innerHTML = `<td><div class="student-name"><span class="avatar-small">${st.name[0]}</span> ${st.name.split(' ')[0]}</div></td><td>${st.group}</td>`;
+            let gradeTd = document.createElement('td');
+            if(isEdit){
+                let inp = document.createElement('input'); inp.type='number'; inp.className='lesson-grade-input'; inp.value = sub.lessons[editingLessonIndex].grades[gi]||''; inp.step=0.1; inp.min=2; inp.max=5;
+                inp.onchange = () => { let v=inp.value.trim(); sub.lessons[editingLessonIndex].grades[gi] = v===''?null:Math.min(5,Math.max(2,parseFloat(v)||2)); updateTeacherStats(); renderDetailedGroupStats(); autoSave(); };
+                gradeTd.appendChild(inp);
+            } else {
+                let avg = calculateGrade(gi);
+                gradeTd.innerHTML = `<span class="grade-pill">${avg!==null?avg.toFixed(1):'—'}</span>`;
+            }
+            let attTd = document.createElement('td');
+            if(isEdit){
+                let chk = document.createElement('input'); chk.type='checkbox'; chk.className='attendance-checkbox'; chk.checked = sub.lessons[editingLessonIndex].present[gi]||false;
+                chk.onchange = () => { sub.lessons[editingLessonIndex].present[gi]=chk.checked; renderLessonsList(); updateTeacherStats(); renderDetailedGroupStats(); autoSave(); };
+                attTd.appendChild(chk);
+            } else {
+                let att = calculateAttendance(gi);
+                attTd.innerHTML = `<div class="attendance-display">${att}%</div><div class="attendance-bar-bg"><div class="attendance-bar-fill" style="width:${att}%;"></div></div>`;
+            }
+            let actTd = document.createElement('td');
+            actTd.innerHTML = `<button class="edit-small"><i class="fas fa-pencil-alt"></i></button> <button class="delete-small"><i class="fas fa-trash-can"></i></button>`;
+            actTd.querySelector('.edit-small').onclick = () => { let n=prompt('Имя:',st.name); if(n) st.name=n; let g=prompt('Группа:',st.group); if(g){ groups.add(g); st.group=g; } updateGroupSelect(); updateGroupTabs(); renderTeacherTable(); updateStudentSelect(); renderDetailedGroupStats(); autoSave(); };
+            actTd.querySelector('.delete-small').onclick = () => { if(confirm(`Удалить ${st.name}?`)){ globalStudents.splice(gi,1); subjects.forEach(s=>{ s.lessons.forEach(l=>{ l.present.splice(gi,1); l.grades.splice(gi,1); }); }); groups.clear(); globalStudents.forEach(s=>groups.add(s.group)); updateGroupSelect(); updateGroupTabs(); renderTeacherTable(); renderLessonsList(); updateStudentSelect(); renderDetailedGroupStats(); autoSave(); } };
+            tr.appendChild(gradeTd); tr.appendChild(attTd); tr.appendChild(actTd);
+            tbody.appendChild(tr);
+        });
+        updateTeacherStats();
+        renderDetailedGroupStats();
+    }
+    
+    function updateTeacherStats(){
+        let sub = getCurrentSubject();
+        if(!sub) return;
+        let filtered = getFilteredStudents();
+        let cnt = filtered.length;
+        document.getElementById('studentCount').textContent = cnt;
+        if(cnt===0){ document.getElementById('avgGrade').textContent='—'; document.getElementById('avgAtt').textContent='—%'; return; }
+        let sumG=0,gc=0,sumA=0;
+        filtered.forEach((_,idx)=>{ let gi=getStudentIndexInGlobal(idx); let g=calculateGrade(gi); if(g!==null){ sumG+=g; gc++; } sumA+=calculateAttendance(gi); });
+        document.getElementById('avgGrade').textContent = gc>0 ? (sumG/gc).toFixed(2) : '—';
+        document.getElementById('avgAtt').textContent = Math.round(sumA/cnt)+'%';
+    }
+    
+    function addStudent(){ let name=document.getElementById('studentNameInput').value.trim(); if(!name) return alert('Введите имя'); let group=document.getElementById('studentGroupSelect').value; globalStudents.push({name,group}); groups.add(group); subjects.forEach(s=>{ s.lessons.forEach(l=>{ l.present.push(false); l.grades.push(null); }); }); document.getElementById('studentNameInput').value=''; updateGroupSelect(); updateGroupTabs(); renderTeacherTable(); renderLessonsList(); updateStudentSelect(); renderDetailedGroupStats(); autoSave(); }
+    function addLesson(){ let sub=getCurrentSubject(); if(!sub) return alert('Создайте предмет'); let d=prompt('Дата (ГГГГ-ММ-ДД):',new Date().toISOString().slice(0,10)); if(!d) return; let t=prompt('Тема:','')||''; sub.lessons.push({date:d,topic:t,fileUrl:null,fileName:null,present:globalStudents.map(()=>false),grades:globalStudents.map(()=>null)}); renderLessonsList(); renderTeacherTable(); autoSave(); }
+    function addSubject(){ let n=prompt('Название предмета:'); if(!n) return; let id='subj_'+Date.now(); subjects.push({id:id,name:n,lessons:[]}); if(subjects.length===1) currentSubjectId=id; editingLessonIndex=null; renderSubjectTabs(); renderTeacherTable(); renderLessonsList(); document.getElementById('currentSubjectTitle').textContent=n||''; renderDetailedGroupStats(); autoSave(); }
+    function deleteCurrentSubject(){ if(subjects.length===0) return alert('Нет предметов'); if(!confirm('Удалить предмет?')) return; subjects=subjects.filter(s=>s.id!==currentSubjectId); if(subjects.length>0) currentSubjectId=subjects[0].id; else currentSubjectId=null; editingLessonIndex=null; renderSubjectTabs(); renderTeacherTable(); renderLessonsList(); document.getElementById('currentSubjectTitle').textContent=getCurrentSubject()?.name||'Нет предметов'; renderDetailedGroupStats(); autoSave(); }
+    
+    function renderStudentDashboard(){
+        if(!currentUser||currentUser.role!=='student') return;
+        let st = globalStudents[currentUser.id];
+        if(!st) return;
+        document.getElementById('studentWelcome').innerHTML = `Привет, ${st.name.split(' ')[0]}!`;
+        document.getElementById('studentGroup').innerHTML = `Группа: ${st.group}`;
+        let totalGrade=0, gradeCount=0, totalAtt=0;
+        subjects.forEach(sub=>{
+            let sum=0,cnt=0,pres=0;
+            sub.lessons.forEach(l=>{ if(l.grades[currentUser.id]!==null){ sum+=l.grades[currentUser.id]; cnt++; } if(l.present[currentUser.id]) pres++; });
+            if(cnt>0){ totalGrade+=(sum/cnt); gradeCount++; }
+            totalAtt += sub.lessons.length>0 ? Math.round((pres/sub.lessons.length)*100) : 0;
+        });
+        document.getElementById('studentAvgGrade').innerHTML = gradeCount>0 ? (totalGrade/gradeCount).toFixed(2) : '—';
+        document.getElementById('studentAvgAttendance').innerHTML = subjects.length>0 ? Math.round(totalAtt/subjects.length)+'%' : '—%';
+        document.getElementById('studentSubjectsCount').innerHTML = subjects.length;
+        let html = '';
+        subjects.forEach(sub=>{
+            if(sub.lessons.length===0) return;
+            let lessonsHtml = '';
+            sub.lessons.forEach(l=>{
+                let date = new Date(l.date).toLocaleDateString();
+                let present = l.present[currentUser.id] ? '✅' : '❌';
+                let grade = l.grades[currentUser.id]!==null ? l.grades[currentUser.id].toFixed(1) : '—';
+                lessonsHtml += `<tr><td>${date}</td><td>${present}</td><td>${grade}</td><td>${l.topic||''}</td></tr>`;
+            });
+            html += `<div class="subject-accordion"><div class="subject-accordion-header" onclick="this.nextElementSibling.classList.toggle('hidden')"><span><i class="fas fa-book"></i> ${sub.name}</span><i class="fas fa-chevron-down"></i></div><div class="subject-accordion-content"><table class="student-lessons-table"><thead><tr><th>Дата</th><th>Пос.</th><th>Оценка</th><th>Тема</th></tr></thead><tbody>${lessonsHtml}</tbody></table></div></div>`;
+        });
+        document.getElementById('studentDetailedLessons').innerHTML = html || '<div>Нет данных</div>';
+    }
+    
+    function loginAsTeacher(){ currentUser={role:'teacher',id:null}; document.getElementById('userNameDisplay').innerHTML='Преподаватель'; document.getElementById('userRoleDisplay').innerHTML='Преподаватель'; document.getElementById('roleDescription').innerHTML='Режим преподавателя'; document.getElementById('teacherDashboard').classList.remove('hidden'); document.getElementById('studentDashboard').classList.add('hidden'); updateGroupTabs(); renderSubjectTabs(); renderTeacherTable(); renderLessonsList(); renderDetailedGroupStats(); document.getElementById('loginScreen').classList.add('hidden'); document.getElementById('appScreen').classList.remove('hidden'); updateSaveFab(); }
+    function loginAsStudent(idx){ if(idx===undefined||idx<0||idx>=globalStudents.length){ alert('Выберите студента'); return; } currentUser={role:'student',id:idx}; let st=globalStudents[idx]; document.getElementById('userNameDisplay').innerHTML=st.name.split(' ')[0]; document.getElementById('userRoleDisplay').innerHTML='Студент'; document.getElementById('roleDescription').innerHTML='Режим студента'; document.getElementById('teacherDashboard').classList.add('hidden'); document.getElementById('studentDashboard').classList.remove('hidden'); renderStudentDashboard(); document.getElementById('loginScreen').classList.add('hidden'); document.getElementById('appScreen').classList.remove('hidden'); updateSaveFab(); }
+    function logout(){ currentUser=null; editingLessonIndex=null; document.getElementById('loginScreen').classList.remove('hidden'); document.getElementById('appScreen').classList.add('hidden'); document.getElementById('loginTabTeacher').classList.add('active'); document.getElementById('loginTabStudent').classList.remove('active'); document.getElementById('teacherLoginForm').classList.remove('hidden'); document.getElementById('studentLoginForm').classList.add('hidden'); updateSaveFab(); }
+    function updateSaveFab(){ let fab = document.getElementById('saveFab'); if(currentUser?.role==='teacher') fab.classList.remove('hidden'); else fab.classList.add('hidden'); }
+    function manualSave(){ if(currentUser?.role==='teacher') saveToLocalStorage(); else alert('Доступно только преподавателям'); }
+    
     function init(){
-        loadFromLocalStorage();
-        if(globalStudents.length === 0 && groups.size === 0 && subjects.length === 0){
+        if(!loadFromLocalStorage()){
             groups.add('ПМ-31'); groups.add('ПМ-32');
-            globalStudents.push({name:'Иван Петров',group:'ПМ-31'},{name:'Анна Смирнова',group:'ПМ-32'},{name:'Олег Сидоров',group:'ПМ-31'},{name:'Елена Козлова',group:'ПМ-32'});
-            subjects.push({id:'math_1',name:'Математика',lessons:[]},{id:'phys_1',name:'Физика',lessons:[]});
-            currentSubjectId='math_1';
+            globalStudents = [{name:'Иван Петров',group:'ПМ-31'},{name:'Анна Смирнова',group:'ПМ-32'},{name:'Олег Сидоров',group:'ПМ-31'},{name:'Елена Козлова',group:'ПМ-32'}];
+            subjects = [{id:'math_1',name:'Математика',lessons:[]},{id:'phys_1',name:'Физика',lessons:[]}];
+            currentSubjectId = 'math_1';
         }
         updateGroupSelect(); updateGroupTabs(); updateStudentSelect(); renderSubjectTabs(); renderTeacherTable(); renderLessonsList(); renderDetailedGroupStats();
-        document.getElementById('teacherLoginBtn').addEventListener('click',loginAsTeacher);
-        document.getElementById('studentLoginBtn').addEventListener('click',()=>{if(globalStudents.length===0)alert('Нет студентов'); else{const idx=parseInt(document.getElementById('studentSelect').value); if(document.getElementById('studentPassword').value==='123') loginAsStudent(idx); else alert('Неверный пароль');}});
-        document.getElementById('logoutBtn').addEventListener('click',logout);
-        document.getElementById('addSubjectBtn').addEventListener('click',addSubject);
-        document.getElementById('deleteSubjectBtn').addEventListener('click',deleteCurrentSubject);
-        document.getElementById('addStudentBtn').addEventListener('click',addStudent);
-        document.getElementById('addLessonBtn').addEventListener('click',addLesson);
-        document.getElementById('exitLessonBtn').addEventListener('click',()=>{editingLessonIndex=null; renderLessonsList(); renderTeacherTable();});
-        document.getElementById('loginTabTeacher').addEventListener('click',()=>{document.getElementById('loginTabTeacher').classList.add('active'); document.getElementById('loginTabStudent').classList.remove('active'); document.getElementById('teacherLoginForm').classList.remove('hidden'); document.getElementById('studentLoginForm').classList.add('hidden');});
-        document.getElementById('loginTabStudent').addEventListener('click',()=>{document.getElementById('loginTabStudent').classList.add('active'); document.getElementById('loginTabTeacher').classList.remove('active'); document.getElementById('studentLoginForm').classList.remove('hidden'); document.getElementById('teacherLoginForm').classList.add('hidden');});
-        document.getElementById('studentNameInput').addEventListener('keypress',(e)=>{if(e.key==='Enter') addStudent();});
-        updateSaveButtonVisibility();
-        document.getElementById('saveFab').addEventListener('click', manualSave);
+        document.getElementById('teacherLoginBtn').onclick = loginAsTeacher;
+        document.getElementById('studentLoginBtn').onclick = () => { if(globalStudents.length===0) alert('Нет студентов'); else{ let idx=parseInt(document.getElementById('studentSelect').value); if(document.getElementById('studentPassword').value==='123') loginAsStudent(idx); else alert('Неверный пароль'); } };
+        document.getElementById('logoutBtn').onclick = logout;
+        document.getElementById('addSubjectBtn').onclick = addSubject;
+        document.getElementById('deleteSubjectBtn').onclick = deleteCurrentSubject;
+        document.getElementById('addStudentBtn').onclick = addStudent;
+        document.getElementById('addLessonBtn').onclick = addLesson;
+        document.getElementById('exitLessonBtn').onclick = () => { editingLessonIndex=null; renderLessonsList(); renderTeacherTable(); };
+        document.getElementById('loginTabTeacher').onclick = () => { document.getElementById('loginTabTeacher').classList.add('active'); document.getElementById('loginTabStudent').classList.remove('active'); document.getElementById('teacherLoginForm').classList.remove('hidden'); document.getElementById('studentLoginForm').classList.add('hidden'); };
+        document.getElementById('loginTabStudent').onclick = () => { document.getElementById('loginTabStudent').classList.add('active'); document.getElementById('loginTabTeacher').classList.remove('active'); document.getElementById('studentLoginForm').classList.remove('hidden'); document.getElementById('teacherLoginForm').classList.add('hidden'); };
+        document.getElementById('saveFab').onclick = manualSave;
+        updateSaveFab();
+        console.log("EduTrack готов к работе!");
     }
     init();
 })();
